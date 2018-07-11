@@ -58,7 +58,7 @@
 
 
 
-* chat_room을 고유하게 만들어주기 
+#### chat_room을 고유하게 만들어주기 
 
 *app/models/admission.rb*
 
@@ -70,19 +70,29 @@
 ...
 ```
 
+- 기존의 *admission*의 코드를수정해야한다. 각 방에서 일어나는 이벤트는 각 방에서만 발생해야 한다. 만약 모든 방이 공유하는 채널에 이벤트를 발생시키면 1번방에서 a라는 유저가 참여를 눌러도 2번방에서 a가 참여했다는 이벤트가 잘못 동작할 수 있다. 각 방별로 채널을 구분시키기 위해서 고유한 값인 id를 통해 채널을 구분하도록 한다.
 
 
-*views/chat_rooms/show.html.erb*  : 채널 수정
+
+*views/chat_rooms/show.html.erb* 
+
+* 각 방에 발생하는 이벤트를 받기 위해서 channel을 각자 방 채널로 맞춘다.
 
 ```erb
 <script>
-  var channel = pusher.subscribe('chat_room_<%= @chat_room.id %>'); //chatroom_id이라는 채널에 조인이라는 이벤트를 던진 admission 트리거로 간다.
+  function user_joined(data) {
+    $('.joined_user_list').append(`<p class="user-${data.user_id}">${data.email}</p>`);
+  }
+  ...    
+  var channel = pusher.subscribe('chat_room_<%= @chat_room.id %>');
   channel.bind('join', function(data){  //join이라는 이벤트가 발생했을때 실행해라
   console.log(data);
   user_joined(data);
    });
 </script>
 ```
+
+
 
 * 채팅 방에 글남기기(채팅하기)
 
@@ -324,3 +334,4 @@ hanullllje:~/chat_app $ rails c
 1. 현재 메인페이지(index)에서 방을 만들었을때 방 참석인원이 0명인 상태. 어제처럼 1로 증가하게 만든다.
 2.  방제  수정/삭제 하는 경우에 index 에서 적용(pusher)될 수 있도록.
 3.  방을 나왔을 때(Exit), 이방의 인원을 -1 해주는것 
+
